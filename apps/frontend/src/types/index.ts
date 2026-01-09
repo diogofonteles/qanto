@@ -47,9 +47,9 @@ export interface CreateSupermarketDto {
   addressNeighborhood: string;
   addressCity: string;
   addressState: string;
-  addressZipcode: string;
-  addressLat: number;
-  addressLng: number;
+  addressZipCode: string;
+  addressLat?: number;
+  addressLng?: number;
   email: string;
   password: string;
   phone?: string;
@@ -74,6 +74,7 @@ export interface Product {
   categoryId: string;
   supermarketId: string;
   isFeatured: boolean;
+  stock?: number;
   status: string;
   createdAt: string;
 }
