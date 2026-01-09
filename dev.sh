@@ -11,7 +11,7 @@ echo ""
 # Verificar se docker está rodando
 if ! docker-compose ps | grep -q "Up"; then
     echo -e "${BLUE}📦 Iniciando PostgreSQL e Redis...${NC}"
-    docker-compose up -d
+    docker-compose up -d 2>&1 | grep -v "docker-credential-desktop" || true
     sleep 3
 fi
 
