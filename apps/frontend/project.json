@@ -5,50 +5,25 @@
   "projectType": "application",
   "targets": {
     "build": {
-      "executor": "@nx/next:build",
-      "outputs": ["{options.outputPath}"],
-      "defaultConfiguration": "production",
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/.next"],
       "options": {
-        "outputPath": "apps/frontend/.next"
-      },
-      "configurations": {
-        "development": {
-          "outputPath": "apps/frontend"
-        },
-        "production": {}
+        "command": "next build",
+        "cwd": "apps/frontend"
       }
     },
     "dev": {
-      "executor": "@nx/next:server",
-      "defaultConfiguration": "development",
+      "executor": "nx:run-commands",
       "options": {
-        "buildTarget": "frontend:build",
-        "dev": true,
-        "port": 3000
-      },
-      "configurations": {
-        "development": {
-          "buildTarget": "frontend:build:development",
-          "dev": true
-        },
-        "production": {
-          "buildTarget": "frontend:build:production",
-          "dev": false
-        }
+        "command": "next dev",
+        "cwd": "apps/frontend"
       }
     },
     "start": {
-      "executor": "@nx/next:server",
+      "executor": "nx:run-commands",
       "options": {
-        "buildTarget": "frontend:build:production",
-        "dev": false,
-        "port": 3000
-      }
-    },
-    "export": {
-      "executor": "@nx/next:export",
-      "options": {
-        "buildTarget": "frontend:build:production"
+        "command": "next start",
+        "cwd": "apps/frontend"
       }
     },
     "lint": {

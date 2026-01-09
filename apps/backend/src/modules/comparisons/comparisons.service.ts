@@ -8,7 +8,7 @@ import {
 import { PrismaService } from '../../database/prisma.service';
 import { CreateComparisonDto } from './dto/create-comparison.dto';
 
-interface ProductComparison {
+export interface ProductComparison {
   productId: string;
   name: string;
   quantity: number;
@@ -18,7 +18,7 @@ interface ProductComparison {
   originalProduct?: any;
 }
 
-interface SupermarketComparison {
+export interface SupermarketComparison {
   supermarketId: string;
   supermarketName: string;
   tradingName?: string;

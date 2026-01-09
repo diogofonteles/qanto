@@ -5,13 +5,11 @@
   "projectType": "application",
   "targets": {
     "build": {
-      "executor": "@nx/js:tsc",
-      "outputs": ["{options.outputPath}"],
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/dist"],
       "options": {
-        "outputPath": "apps/backend/dist",
-        "main": "apps/backend/src/main.ts",
-        "tsConfig": "apps/backend/tsconfig.json",
-        "assets": ["apps/backend/src/assets"]
+        "command": "nest build",
+        "cwd": "apps/backend"
       }
     },
     "dev": {
