@@ -15,6 +15,9 @@ export default function DashboardPage() {
   const router = useRouter();
   const t = useTranslations('dashboard');
   const tCommon = useTranslations('common');
+  const tProducts = useTranslations('products');
+  const tLists = useTranslations('lists');
+  const tComparison = useTranslations('comparison');
   const [user, setUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'lists' | 'products' | 'compare'>('lists');
 
@@ -251,7 +254,7 @@ export default function DashboardPage() {
                       >
                         <div className="font-medium">{list.name}</div>
                         <div className="text-sm text-gray-500">
-                          {list.items?.length || 0} items
+                          {list.items?.length || 0} {tLists('items')}
                         </div>
                       </div>
                     ))}
@@ -266,24 +269,24 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Search Products</CardTitle>
-                <CardDescription>Find products to add to {selectedList.name}</CardDescription>
+                <CardTitle>{tProducts('searchProductsTitle')}</CardTitle>
+                <CardDescription>{tProducts('findProductsToAdd', { listName: selectedList.name })}</CardDescription>
               </CardHeader>
               <form onSubmit={handleSearchProducts}>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label htmlFor="search">Search</Label>
+                    <Label htmlFor="search">{tProducts('search')}</Label>
                     <Input
                       id="search"
                       type="text"
-                      placeholder="Search for products..."
+                      placeholder={tProducts('searchPlaceholder')}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       disabled={loading}
                     />
                   </div>
                   <Button type="submit" disabled={loading}>
-                    Search
+                    {loading ? tProducts('searching') : tProducts('search')}
                   </Button>
 
                   <div className="mt-4 space-y-2 max-h-96 overflow-y-auto">
@@ -313,13 +316,13 @@ export default function DashboardPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Current List: {selectedList.name}</CardTitle>
-                <CardDescription>Items in your shopping list</CardDescription>
+                <CardTitle>{tLists('currentList', { listName: selectedList.name })}</CardTitle>
+                <CardDescription>{tLists('itemsInList')}</CardDescription>
               </CardHeader>
               <CardContent>
                 {selectedProduct && (
                   <div className="mb-4 p-4 border rounded bg-blue-50">
-                    <div className="font-medium mb-2">Add to List</div>
+                    <div className="font-medium mb-2">{tProducts('addToList')}</div>
                     <div className="text-sm mb-2">{selectedProduct.name}</div>
                     <div className="flex gap-2 items-center">
                       <Input
@@ -330,7 +333,7 @@ export default function DashboardPage() {
                         className="w-20"
                       />
                       <Button onClick={handleAddToList} disabled={loading}>
-                        Add
+                        {tLists('addProduct')}
                       </Button>
                     </div>
                   </div>
@@ -342,12 +345,12 @@ export default function DashboardPage() {
                       <div key={item.id} className="p-3 border rounded">
                         <div className="font-medium">{item.product.name}</div>
                         <div className="text-sm text-gray-500">
-                          Quantity: {item.quantity} × {formatPrice(item.product.priceCents)}
+                          {tLists('quantity')}: {item.quantity} × {formatPrice(item.product.priceCents)}
                         </div>
                       </div>
                     ))
                   ) : (
-                    <p className="text-sm text-gray-500">No items yet. Search and add products!</p>
+                    <p className="text-sm text-gray-500">{tLists('noItemsYet')}</p>
                   )}
                 </div>
               </CardContent>
@@ -359,9 +362,9 @@ export default function DashboardPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Select Supermarkets to Compare</CardTitle>
+                <CardTitle>{tComparison('selectSupermarkets')}</CardTitle>
                 <CardDescription>
-                  Choose at least 2 supermarkets for {selectedList.name}
+                  {tComparison('selectSupermarketsDescription', { listName: selectedList.name })}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -395,7 +398,7 @@ export default function DashboardPage() {
                   onClick={handleCompare}
                   disabled={loading || selectedSupermarkets.length < 2}
                 >
-                  {loading ? 'Comparing...' : 'Compare Prices'}
+                  {loading ? tComparison('comparing') : tComparison('compareButton')}
                 </Button>
               </CardFooter>
             </Card>
