@@ -21,7 +21,7 @@ echo ""
 
 # Passo 2: Docker
 echo -e "${BLUE}[2/5]${NC} Iniciando PostgreSQL e Redis..."
-docker-compose up -d
+docker-compose up -d 2>&1 | grep -v "docker-credential-desktop" || true
 echo -e "${YELLOW}⏳ Aguardando serviços ficarem prontos...${NC}"
 sleep 5
 echo -e "${GREEN}✓ PostgreSQL e Redis rodando${NC}"
@@ -50,7 +50,7 @@ echo -e "${BLUE}║         Próximos Passos                ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════╝${NC}"
 echo ""
 echo -e "${YELLOW}Terminal 1 - Backend:${NC}"
-echo -e "  cd apps/backend && npm run start:dev"
+echo -e "  cd apps/backend && npm run dev"
 echo ""
 echo -e "${YELLOW}Terminal 2 - Frontend:${NC}"
 echo -e "  cd apps/frontend && npm run dev"
