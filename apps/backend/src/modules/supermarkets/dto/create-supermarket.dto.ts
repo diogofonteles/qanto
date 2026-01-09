@@ -7,6 +7,7 @@ import {
   MinLength,
   IsEmail,
   IsObject,
+  IsNumber,
 } from 'class-validator';
 import { IsCNPJ } from '../../../common/decorators/is-cnpj.decorator';
 
@@ -56,11 +57,13 @@ export class CreateSupermarketDto {
   @Matches(/^\d{5}-?\d{3}$/, { message: 'Invalid CEP format' })
   addressZipcode: string;
 
-  @ApiProperty({ example: -23.5505199 })
-  addressLat: number;
+  @ApiProperty({ example: -23.5505199, required: false })
+  @IsOptional()
+  addressLat?: number;
 
-  @ApiProperty({ example: -46.6333094 })
-  addressLng: number;
+  @ApiProperty({ example: -46.6333094, required: false })
+  @IsOptional()
+  addressLng?: number;
 
   @ApiProperty({ example: 'contact@mercadoxyz.com' })
   @IsEmail()

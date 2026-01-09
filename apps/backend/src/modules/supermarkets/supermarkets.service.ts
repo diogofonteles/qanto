@@ -9,10 +9,14 @@ import { PrismaService } from '../../database/prisma.service';
 import { CreateSupermarketDto } from './dto/create-supermarket.dto';
 import { UpdateSupermarketDto } from './dto/update-supermarket.dto';
 import { CNPJValidator } from '../../common/validators/cnpj.validator';
+import { GeocodingService } from '../../common/services/geocoding.service';
 
 @Injectable()
 export class SupermarketsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private geocodingService: GeocodingService,
+  ) {}
 
   async create(createSupermarketDto: CreateSupermarketDto) {
     const existingEmail = await this.prisma.user.findUnique({
@@ -34,6 +38,24 @@ export class SupermarketsService {
     }
 
     const hashedPassword = await bcrypt.hash(createSupermarketDto.password, 10);
+
+    // Calculate coordinates if not provided
+    let addressLat = createSupermarketDto.addressLat;
+    let addressLng = createSupermarketDto.addressLng;
+
+    if (!addressLat || !addressLng) {
+      const geocodingResult = await this.geocodingService.geocodeAddress(
+        createSupermarketDto.addressStreet,
+        createSupermarketDto.addressNumber,
+        createSupermarketDto.addressNeighborhood,
+        createSupermarketDto.addressCity,
+        createSupermarketDto.addressState,
+        createSupermarketDto.addressZipcode,
+      );
+
+      addressLat = geocodingResult.latitude;
+      addressLng = geocodingResult.longitude;
+    }
 
     const result = await this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
@@ -60,8 +82,8 @@ export class SupermarketsService {
           addressCity: createSupermarketDto.addressCity,
           addressState: createSupermarketDto.addressState,
           addressZipcode: createSupermarketDto.addressZipcode.replace(/\D/g, ''),
-          addressLat: createSupermarketDto.addressLat,
-          addressLng: createSupermarketDto.addressLng,
+          addressLat: addressLat,
+          addressLng: addressLng,
           logoUrl: createSupermarketDto.logoUrl,
           description: createSupermarketDto.description,
           openingHours: createSupermarketDto.openingHours,
