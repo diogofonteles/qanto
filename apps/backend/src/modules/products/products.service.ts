@@ -321,66 +321,165 @@ export class ProductsService {
     return { message: 'Product deleted successfully' };
   }
 
-  async processCsv(supermarketId: string, csvContent: string) {
-    const lines = csvContent.split('\n').filter((line) => line.trim());
+  async processCsv(supermarketId: string, csvContent: string, fileName: string = 'upload.csv') {
+    // Create job record immediately
+    const csvImport = await this.prisma.csvImport.create({
+      data: {
+        supermarketId,
+        fileName,
+        status: 'pending',
+        totalRows: csvContent.split('\n').filter((line) => line.trim()).length - 1, // -1 for header
+      },
+    });
 
-    if (lines.length < 2) {
-      throw new BadRequestException('CSV file is empty or invalid');
-    }
+    // Start async processing (non-blocking)
+    this.processCSVAsync(csvImport.id, supermarketId, csvContent)
+      .catch((error) => {
+        console.error('CSV processing failed:', error);
+      });
 
-    const headers = lines[0].split(',').map((h) => h.trim().toLowerCase());
-    const requiredHeaders = ['name', 'pricecents', 'categoryid'];
-
-    for (const required of requiredHeaders) {
-      if (!headers.includes(required)) {
-        throw new BadRequestException(
-          `CSV missing required column: ${required}. Required: name, priceCents, categoryId`,
-        );
-      }
-    }
-
-    const results = {
-      success: 0,
-      failed: 0,
-      errors: [] as string[],
+    // Return job ID immediately
+    return {
+      jobId: csvImport.id,
+      status: 'pending',
+      message: 'CSV upload accepted. Processing started.',
     };
+  }
 
-    for (let i = 1; i < lines.length; i++) {
-      try {
-        const values = lines[i].split(',').map((v) => v.trim());
-        const row: any = {};
+  private async processCSVAsync(jobId: string, supermarketId: string, csvContent: string) {
+    try {
+      // Update status to processing
+      await this.prisma.csvImport.update({
+        where: { id: jobId },
+        data: {
+          status: 'processing',
+          startedAt: new Date(),
+        },
+      });
 
-        headers.forEach((header, index) => {
-          row[header] = values[index] || '';
-        });
+      const lines = csvContent.split('\n').filter((line) => line.trim());
 
-        const productData: any = {
-          name: row.name,
-          priceCents: parseInt(row.pricecents),
-          categoryId: row.categoryid,
-          supermarketId,
-        };
-
-        if (row.description) productData.description = row.description;
-        if (row.brand) productData.brand = row.brand;
-        if (row.barcode) productData.barcode = row.barcode;
-        if (row.promopricecents)
-          productData.promoPriceCents = parseInt(row.promopricecents);
-        if (row.stock) productData.stock = parseInt(row.stock);
-        if (row.unit) productData.unit = row.unit;
-
-        await this.prisma.product.create({
-          data: productData,
-        });
-
-        results.success++;
-      } catch (error) {
-        results.failed++;
-        results.errors.push(`Line ${i + 1}: ${error.message}`);
+      if (lines.length < 2) {
+        throw new Error('CSV file is empty or invalid');
       }
+
+      const headers = lines[0].split(',').map((h) => h.trim().toLowerCase());
+      const requiredHeaders = ['name', 'pricecents', 'categoryid'];
+
+      for (const required of requiredHeaders) {
+        if (!headers.includes(required)) {
+          throw new Error(
+            `CSV missing required column: ${required}. Required: name, priceCents, categoryId`,
+          );
+        }
+      }
+
+      let successCount = 0;
+      let errorCount = 0;
+      const errors: string[] = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        try {
+          const values = lines[i].split(',').map((v) => v.trim());
+          const row: any = {};
+
+          headers.forEach((header, index) => {
+            row[header] = values[index] || '';
+          });
+
+          const productData: any = {
+            name: row.name,
+            priceCents: parseInt(row.pricecents),
+            categoryId: row.categoryid,
+            supermarketId,
+          };
+
+          if (row.description) productData.description = row.description;
+          if (row.brand) productData.brand = row.brand;
+          if (row.barcode) productData.barcode = row.barcode;
+          if (row.promopricecents)
+            productData.promoPriceCents = parseInt(row.promopricecents);
+          if (row.stock) productData.stock = parseInt(row.stock);
+          if (row.unit) productData.unit = row.unit;
+
+          await this.prisma.product.create({
+            data: productData,
+          });
+
+          successCount++;
+        } catch (error) {
+          errorCount++;
+          errors.push(`Line ${i + 1}: ${error.message}`);
+        }
+      }
+
+      // Update job as completed
+      await this.prisma.csvImport.update({
+        where: { id: jobId },
+        data: {
+          status: 'completed',
+          successRows: successCount,
+          errorRows: errorCount,
+          errors: errors.length > 0 ? errors : null,
+          completedAt: new Date(),
+        },
+      });
+    } catch (error) {
+      // Update job as failed
+      await this.prisma.csvImport.update({
+        where: { id: jobId },
+        data: {
+          status: 'failed',
+          errors: [error.message],
+          completedAt: new Date(),
+        },
+      });
+    }
+  }
+
+  async getCsvJobStatus(jobId: string, supermarketId: string) {
+    const job = await this.prisma.csvImport.findFirst({
+      where: {
+        id: jobId,
+        supermarketId,
+      },
+      select: {
+        id: true,
+        fileName: true,
+        status: true,
+        totalRows: true,
+        successRows: true,
+        errorRows: true,
+        errors: true,
+        startedAt: true,
+        completedAt: true,
+        createdAt: true,
+      },
+    });
+
+    if (!job) {
+      throw new NotFoundException('Job not found');
     }
 
-    return results;
+    return job;
+  }
+
+  async getCsvJobHistory(supermarketId: string, limit: number = 10) {
+    return this.prisma.csvImport.findMany({
+      where: { supermarketId },
+      select: {
+        id: true,
+        fileName: true,
+        status: true,
+        totalRows: true,
+        successRows: true,
+        errorRows: true,
+        createdAt: true,
+        completedAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
   }
 
   async getCategories() {

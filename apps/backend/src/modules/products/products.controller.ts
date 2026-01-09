@@ -70,7 +70,25 @@ export class ProductsController {
     )
     file: Express.Multer.File,
   ) {
-    return this.productsService.processCsv(user.id, file.buffer.toString());
+    return this.productsService.processCsv(user.id, file.buffer.toString(), file.originalname);
+  }
+
+  @Get('csv-job/:jobId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.supermarket)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get CSV import job status' })
+  getCsvJobStatus(@CurrentUser() user: any, @Param('jobId') jobId: string) {
+    return this.productsService.getCsvJobStatus(jobId, user.id);
+  }
+
+  @Get('csv-jobs')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.supermarket)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get CSV import job history' })
+  getCsvJobHistory(@CurrentUser() user: any, @Query('limit') limit?: number) {
+    return this.productsService.getCsvJobHistory(user.id, limit);
   }
 
   @Get()
