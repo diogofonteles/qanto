@@ -1,0 +1,381 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  consumer
+  supermarket
+  admin
+}
+
+enum UserStatus {
+  active
+  inactive
+  suspended
+  pending
+}
+
+enum ProductStatus {
+  active
+  inactive
+  out_of_stock
+}
+
+enum ListStatus {
+  active
+  completed
+  archived
+}
+
+enum PlanType {
+  consumer
+  supermarket
+}
+
+enum EventType {
+  view_product
+  click_product
+  add_to_list
+  remove_from_list
+  create_comparison
+  view_comparison
+  create_alert
+  search_product
+}
+
+model Plan {
+  id             String   @id @default(uuid())
+  name           String
+  type           PlanType
+  compareLimit   Int?
+  alertLimit     Int?
+  featuredLimit  Int?
+  features       Json     @default("{}")
+  priceCents     Int      @default(0)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  users          User[]
+  supermarkets   Supermarket[]
+
+  @@map("plans")
+}
+
+model User {
+  id                String     @id @default(uuid())
+  email             String     @unique
+  passwordHash      String?
+  name              String
+  role              UserRole   @default(consumer)
+  status            UserStatus @default(active)
+  phone             String?
+  birthDate         DateTime?
+
+  addressStreet       String?
+  addressNumber       String?
+  addressComplement   String?
+  addressNeighborhood String?
+  addressCity         String?
+  addressState        String?
+  addressZipcode      String?
+  addressLat          Decimal?   @db.Decimal(10, 8)
+  addressLng          Decimal?   @db.Decimal(11, 8)
+
+  searchRadiusKm    Int        @default(5)
+  planId            String?
+  plan              Plan?      @relation(fields: [planId], references: [id])
+
+  googleId          String?    @unique
+  appleId           String?    @unique
+
+  emailVerifiedAt   DateTime?
+  lastLoginAt       DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  supermarket       Supermarket?
+  shoppingLists     ShoppingList[]
+  comparisons       Comparison[]
+  priceAlerts       PriceAlert[]
+  userEvents        UserEvent[]
+
+  @@index([email])
+  @@index([role])
+  @@index([addressLat, addressLng])
+  @@map("users")
+}
+
+model Supermarket {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  companyName         String
+  tradingName         String?
+  cnpj                String   @unique
+
+  phone               String?
+  website             String?
+
+  addressStreet       String
+  addressNumber       String
+  addressComplement   String?
+  addressNeighborhood String
+  addressCity         String
+  addressState        String
+  addressZipcode      String
+  addressLat          Decimal  @db.Decimal(10, 8)
+  addressLng          Decimal  @db.Decimal(11, 8)
+
+  logoUrl             String?
+  description         String?
+  openingHours        Json?
+
+  apiEndpoint         String?
+  apiKey              String?
+  lastSyncAt          DateTime?
+
+  rankingScore        Int      @default(0)
+  isVerified          Boolean  @default(false)
+
+  planId              String?
+  plan                Plan?    @relation(fields: [planId], references: [id])
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  products            Product[]
+  comparisons         Comparison[]
+  supermarketStats    SupermarketStats[]
+  csvImports          CsvImport[]
+
+  @@index([addressLat, addressLng])
+  @@index([addressCity])
+  @@index([cnpj])
+  @@map("supermarkets")
+}
+
+model Category {
+  id        String     @id @default(uuid())
+  name      String
+  slug      String     @unique
+  parentId  String?
+  parent    Category?  @relation("CategoryChildren", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryChildren")
+  icon      String?
+  sortOrder Int        @default(0)
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+
+  products  Product[]
+
+  @@index([parentId])
+  @@index([slug])
+  @@map("categories")
+}
+
+model Product {
+  id                String        @id @default(uuid())
+  supermarketId     String
+  supermarket       Supermarket   @relation(fields: [supermarketId], references: [id], onDelete: Cascade)
+  categoryId        String?
+  category          Category?     @relation(fields: [categoryId], references: [id])
+
+  name              String
+  description       String?
+  barcode           String?
+  sku               String?
+
+  brand             String?
+  unit              String
+  quantity          Decimal       @db.Decimal(10, 3)
+
+  priceCents        Int
+  promoPriceCents   Int?
+  promoStartDate    DateTime?
+  promoEndDate      DateTime?
+
+  imageUrl          String?
+
+  isFeatured        Boolean       @default(false)
+  featuredUntil     DateTime?
+  status            ProductStatus @default(active)
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  priceHistory      PriceHistory[]
+  listItems         ListItem[]
+  priceAlerts       PriceAlert[]
+  productStats      ProductStats[]
+
+  @@index([supermarketId])
+  @@index([categoryId])
+  @@index([barcode])
+  @@index([status])
+  @@index([isFeatured, featuredUntil])
+  @@index([promoStartDate, promoEndDate])
+  @@map("products")
+}
+
+model PriceHistory {
+  id              String   @id @default(uuid())
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  priceCents      Int
+  promoPriceCents Int?
+  recordedAt      DateTime @default(now())
+
+  @@index([productId, recordedAt(sort: Desc)])
+  @@map("price_history")
+}
+
+model ShoppingList {
+  id        String     @id @default(uuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  status    ListStatus @default(active)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  items       ListItem[]
+  comparisons Comparison[]
+
+  @@index([userId, status])
+  @@map("shopping_lists")
+}
+
+model ListItem {
+  id        String       @id @default(uuid())
+  listId    String
+  list      ShoppingList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int          @default(1)
+  isChecked Boolean      @default(false)
+  createdAt DateTime     @default(now())
+
+  @@unique([listId, productId])
+  @@index([listId])
+  @@map("list_items")
+}
+
+model Comparison {
+  id                   String        @id @default(uuid())
+  userId               String
+  user                 User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listId               String?
+  list                 ShoppingList? @relation(fields: [listId], references: [id], onDelete: SetNull)
+
+  supermarketIds       String[]
+  results              Json
+  cheapestSupermarketId String?
+  cheapestSupermarket   Supermarket? @relation(fields: [cheapestSupermarketId], references: [id])
+  cheapestTotalCents    Int?
+
+  createdAt            DateTime      @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("comparisons")
+}
+
+model PriceAlert {
+  id              String    @id @default(uuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  targetPriceCents Int
+  isActive        Boolean   @default(true)
+  triggeredAt     DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId, isActive])
+  @@index([productId, isActive])
+  @@map("price_alerts")
+}
+
+model UserEvent {
+  id          String    @id @default(uuid())
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  sessionId   String?
+
+  eventType   EventType
+  entityType  String?
+  entityId    String?
+
+  metadata    Json      @default("{}")
+
+  userAgent   String?
+  ipAddress   String?
+  referrer    String?
+
+  createdAt   DateTime  @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([eventType, createdAt(sort: Desc)])
+  @@index([entityType, entityId])
+  @@map("user_events")
+}
+
+model ProductStats {
+  id                   String   @id @default(uuid())
+  productId            String
+  product              Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  date                 DateTime @db.Date
+
+  views                Int      @default(0)
+  clicks               Int      @default(0)
+  listAdds             Int      @default(0)
+  comparisonIncludes   Int      @default(0)
+
+  @@unique([productId, date])
+  @@index([productId, date(sort: Desc)])
+  @@map("product_stats")
+}
+
+model SupermarketStats {
+  id                  String      @id @default(uuid())
+  supermarketId       String
+  supermarket         Supermarket @relation(fields: [supermarketId], references: [id], onDelete: Cascade)
+  date                DateTime    @db.Date
+
+  comparisonsIncluded Int         @default(0)
+  cheapestWins        Int         @default(0)
+  productsViewed      Int         @default(0)
+
+  @@unique([supermarketId, date])
+  @@index([supermarketId, date(sort: Desc)])
+  @@map("supermarket_stats")
+}
+
+model CsvImport {
+  id            String      @id @default(uuid())
+  supermarketId String
+  supermarket   Supermarket @relation(fields: [supermarketId], references: [id], onDelete: Cascade)
+
+  fileName      String
+  fileUrl       String?
+
+  totalRows     Int?
+  successRows   Int?
+  errorRows     Int?
+  errors        Json?
+
+  status        String      @default("pending")
+
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime    @default(now())
+
+  @@map("csv_imports")
+}
