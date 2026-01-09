@@ -23,7 +23,7 @@ echo ""
 # Rodar backend e frontend em paralelo
 trap 'kill 0' EXIT
 
-(cd apps/backend && npm run start:dev) &
+(cd apps/backend && npm run dev) &
 (cd apps/frontend && npm run dev) &
 
 wait
