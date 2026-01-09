@@ -8,6 +8,7 @@ import { UsersModule } from './modules/users/users.module';
 import { SupermarketsModule } from './modules/supermarkets/supermarkets.module';
 import { ProductsModule } from './modules/products/products.module';
 import { ListsModule } from './modules/lists/lists.module';
+import { ComparisonsModule } from './modules/comparisons/comparisons.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ListsModule } from './modules/lists/lists.module';
     SupermarketsModule,
     ProductsModule,
     ListsModule,
+    ComparisonsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
