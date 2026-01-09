@@ -60,6 +60,9 @@ class ApiClient {
       localStorage.setItem('accessToken', response.accessToken);
       localStorage.setItem('refreshToken', response.refreshToken);
       localStorage.setItem('user', JSON.stringify(response.user));
+
+      // Store token in cookie for middleware
+      document.cookie = `accessToken=${response.accessToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
     }
 
     return response;
@@ -75,6 +78,9 @@ class ApiClient {
       localStorage.setItem('accessToken', response.accessToken);
       localStorage.setItem('refreshToken', response.refreshToken);
       localStorage.setItem('user', JSON.stringify(response.user));
+
+      // Store token in cookie for middleware
+      document.cookie = `accessToken=${response.accessToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
     }
 
     return response;
@@ -231,6 +237,9 @@ class ApiClient {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
+
+      // Remove token from cookie
+      document.cookie = 'accessToken=; path=/; max-age=0';
     }
   }
 
