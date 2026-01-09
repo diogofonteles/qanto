@@ -4,16 +4,18 @@
   "private": true,
   "description": "Price comparison platform for supermarkets",
   "scripts": {
-    "dev": "turbo run dev",
-    "build": "turbo run build",
-    "test": "turbo run test",
-    "lint": "turbo run lint",
+    "dev": "nx run-many --target=dev --all",
+    "build": "nx run-many --target=build --all",
+    "test": "nx run-many --target=test --all",
+    "lint": "nx run-many --target=lint --all",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
-    "clean": "turbo run clean && rm -rf node_modules"
+    "clean": "nx reset && rm -rf node_modules",
+    "graph": "nx graph",
+    "affected": "nx affected:graph"
   },
   "devDependencies": {
-    "prettier": "^3.1.1",
-    "turbo": "^1.11.3"
+    "nx": "^17.2.8",
+    "prettier": "^3.1.1"
   },
   "engines": {
     "node": ">=20.0.0",

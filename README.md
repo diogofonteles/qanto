@@ -32,7 +32,7 @@ This is a monorepo project built with:
 
 ### Infrastructure
 - **Containerization**: Docker
-- **Monorepo Tool**: Turbo
+- **Monorepo Tool**: Nx
 - **CI/CD**: GitHub Actions
 - **Cloud**: AWS (planned)
 
@@ -130,32 +130,71 @@ npm run build      # Build all apps
 npm run test       # Run tests
 npm run lint       # Lint all apps
 npm run format     # Format code with Prettier
-npm run clean      # Clean all node_modules and build artifacts
+npm run clean      # Clean Nx cache and node_modules
+npm run graph      # View project dependency graph
+npm run affected   # View affected projects graph
+```
+
+### Nx-Specific Commands
+
+```bash
+# Run a specific target for a specific project
+nx run backend:dev
+nx run frontend:build
+
+# Run a target for all projects
+nx run-many --target=test --all
+
+# Run a target only for affected projects
+nx affected --target=build
+
+# View the project graph
+nx graph
+
+# Clear Nx cache
+nx reset
+
+# Get help
+nx --help
 ```
 
 ### Backend Commands
 
 ```bash
-cd apps/backend
+# Using Nx (from root)
+nx run backend:dev                # Start in watch mode
+nx run backend:build              # Build for production
+nx run backend:start              # Start production build
+nx run backend:prisma-generate    # Generate Prisma Client
+nx run backend:prisma-migrate     # Run database migrations
+nx run backend:prisma-studio      # Open Prisma Studio
+nx run backend:prisma-seed        # Seed database
 
-npm run dev                # Start in watch mode
-npm run build              # Build for production
-npm run start:prod         # Start production build
-npm run prisma:generate    # Generate Prisma Client
-npm run prisma:migrate     # Run database migrations
-npm run prisma:studio      # Open Prisma Studio
-npm run prisma:seed        # Seed database
+# Or from backend directory
+cd apps/backend
+npm run dev
+npm run build
+npm run prisma:generate
+npm run prisma:migrate
+npm run prisma:studio
+npm run prisma:seed
 ```
 
 ### Frontend Commands
 
 ```bash
-cd apps/frontend
+# Using Nx (from root)
+nx run frontend:dev        # Start development server
+nx run frontend:build      # Build for production
+nx run frontend:start      # Start production server
+nx run frontend:lint       # Run ESLint
 
-npm run dev        # Start development server
-npm run build      # Build for production
-npm run start      # Start production server
-npm run lint       # Run ESLint
+# Or from frontend directory
+cd apps/frontend
+npm run dev
+npm run build
+npm run start
+npm run lint
 ```
 
 ## 📚 Documentation
@@ -256,7 +295,7 @@ See `apps/backend/prisma/schema.prisma` for the complete schema.
 
 ### DevOps
 - Docker & Docker Compose
-- Turbo (monorepo)
+- Nx (monorepo)
 - GitHub Actions (planned)
 - AWS deployment (planned)
 
