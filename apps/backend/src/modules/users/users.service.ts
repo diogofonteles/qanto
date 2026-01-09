@@ -3,12 +3,14 @@ import { PrismaService } from '../../database/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { ViaCepService } from './services/viacep.service';
+import { GeocodingService } from '../../common/services/geocoding.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     private prisma: PrismaService,
     private viaCepService: ViaCepService,
+    private geocodingService: GeocodingService,
   ) {}
 
   async findOne(id: string) {
@@ -90,6 +92,24 @@ export class UsersService {
       );
     }
 
+    // Calculate coordinates if not provided
+    let addressLat = updateAddressDto.addressLat;
+    let addressLng = updateAddressDto.addressLng;
+
+    if (!addressLat || !addressLng) {
+      const geocodingResult = await this.geocodingService.geocodeAddress(
+        updateAddressDto.addressStreet,
+        updateAddressDto.addressNumber,
+        updateAddressDto.addressNeighborhood,
+        updateAddressDto.addressCity,
+        updateAddressDto.addressState,
+        updateAddressDto.addressZipcode,
+      );
+
+      addressLat = geocodingResult.latitude;
+      addressLng = geocodingResult.longitude;
+    }
+
     const user = await this.prisma.user.update({
       where: { id: userId },
       data: {
@@ -100,8 +120,8 @@ export class UsersService {
         addressNeighborhood: updateAddressDto.addressNeighborhood,
         addressCity: updateAddressDto.addressCity,
         addressState: updateAddressDto.addressState,
-        addressLat: updateAddressDto.addressLat,
-        addressLng: updateAddressDto.addressLng,
+        addressLat: addressLat,
+        addressLng: addressLng,
         searchRadiusKm: updateAddressDto.searchRadiusKm,
       },
       select: {

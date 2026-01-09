@@ -10,6 +10,7 @@ import { PrismaService } from '../../database/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
+import { GeocodingService } from '../../common/services/geocoding.service';
 
 @Injectable()
 export class AuthService {
@@ -17,6 +18,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private geocodingService: GeocodingService,
   ) {}
 
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
@@ -29,6 +31,35 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
+
+    // Calculate coordinates if complete address is provided
+    let addressLat: number | null = null;
+    let addressLng: number | null = null;
+
+    if (
+      registerDto.addressStreet &&
+      registerDto.addressNumber &&
+      registerDto.addressCity &&
+      registerDto.addressState &&
+      registerDto.addressZipCode
+    ) {
+      try {
+        const geocodingResult = await this.geocodingService.geocodeAddress(
+          registerDto.addressStreet,
+          registerDto.addressNumber,
+          registerDto.addressNeighborhood || '',
+          registerDto.addressCity,
+          registerDto.addressState,
+          registerDto.addressZipCode,
+        );
+
+        addressLat = geocodingResult.latitude;
+        addressLng = geocodingResult.longitude;
+      } catch (error) {
+        // Log but don't fail registration if geocoding fails
+        console.error('Geocoding failed during registration:', error.message);
+      }
+    }
 
     const user = await this.prisma.user.create({
       data: {
@@ -44,6 +75,8 @@ export class AuthService {
         addressNeighborhood: registerDto.addressNeighborhood,
         addressCity: registerDto.addressCity,
         addressState: registerDto.addressState,
+        addressLat: addressLat,
+        addressLng: addressLng,
       },
       select: {
         id: true,
