@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateComparisonDto } from './dto/create-comparison.dto';
@@ -30,6 +31,8 @@ interface SupermarketComparison {
 
 @Injectable()
 export class ComparisonsService {
+  private readonly logger = new Logger(ComparisonsService.name);
+
   constructor(private prisma: PrismaService) {}
 
   async create(userId: string, createComparisonDto: CreateComparisonDto) {
@@ -183,6 +186,17 @@ export class ComparisonsService {
         cheapestSupermarketId: cheapest.supermarketId,
         cheapestTotalCents: cheapest.subtotal,
       },
+    });
+
+    this.logger.log({
+      event: 'comparison_created',
+      userId,
+      listId: createComparisonDto.listId,
+      supermarketsCompared: createComparisonDto.supermarketIds.length,
+      itemsCount: list.items.length,
+      cheapestSupermarket: cheapest.supermarketId,
+      totalSavings: savings,
+      timestamp: new Date().toISOString(),
     });
 
     return {

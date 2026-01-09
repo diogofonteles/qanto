@@ -321,6 +321,68 @@ export class ProductsService {
     return { message: 'Product deleted successfully' };
   }
 
+  async processCsv(supermarketId: string, csvContent: string) {
+    const lines = csvContent.split('\n').filter((line) => line.trim());
+
+    if (lines.length < 2) {
+      throw new BadRequestException('CSV file is empty or invalid');
+    }
+
+    const headers = lines[0].split(',').map((h) => h.trim().toLowerCase());
+    const requiredHeaders = ['name', 'pricecents', 'categoryid'];
+
+    for (const required of requiredHeaders) {
+      if (!headers.includes(required)) {
+        throw new BadRequestException(
+          `CSV missing required column: ${required}. Required: name, priceCents, categoryId`,
+        );
+      }
+    }
+
+    const results = {
+      success: 0,
+      failed: 0,
+      errors: [] as string[],
+    };
+
+    for (let i = 1; i < lines.length; i++) {
+      try {
+        const values = lines[i].split(',').map((v) => v.trim());
+        const row: any = {};
+
+        headers.forEach((header, index) => {
+          row[header] = values[index] || '';
+        });
+
+        const productData: any = {
+          name: row.name,
+          priceCents: parseInt(row.pricecents),
+          categoryId: row.categoryid,
+          supermarketId,
+        };
+
+        if (row.description) productData.description = row.description;
+        if (row.brand) productData.brand = row.brand;
+        if (row.barcode) productData.barcode = row.barcode;
+        if (row.promopricecents)
+          productData.promoPriceCents = parseInt(row.promopricecents);
+        if (row.stock) productData.stock = parseInt(row.stock);
+        if (row.unit) productData.unit = row.unit;
+
+        await this.prisma.product.create({
+          data: productData,
+        });
+
+        results.success++;
+      } catch (error) {
+        results.failed++;
+        results.errors.push(`Line ${i + 1}: ${error.message}`);
+      }
+    }
+
+    return results;
+  }
+
   async getCategories() {
     const categories = await this.prisma.category.findMany({
       where: {

@@ -91,6 +91,23 @@ class ApiClient {
     return this.request('/users/profile', {}, true);
   }
 
+  async updateProfile(data: { name: string; phone: string }): Promise<any> {
+    const response = await this.request(
+      '/users/profile',
+      {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      },
+      true
+    );
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('user', JSON.stringify(response));
+    }
+
+    return response;
+  }
+
   async getProducts(params?: Record<string, any>): Promise<{ data: Product[]; meta: any }> {
     const queryString = params ? `?${new URLSearchParams(params).toString()}` : '';
     return this.request(`/products${queryString}`);
@@ -185,6 +202,28 @@ class ApiClient {
       },
       true
     );
+  }
+
+  async uploadCsv(file: File): Promise<{ success: number; failed: number; errors: string[] }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+
+    const response = await fetch(`${API_URL}/products/upload-csv`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Upload failed' }));
+      throw new Error(error.message || `HTTP ${response.status}`);
+    }
+
+    return response.json();
   }
 
   logout() {

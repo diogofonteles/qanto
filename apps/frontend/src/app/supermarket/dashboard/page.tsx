@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { CsvUpload } from '@/components/csv-upload';
 import { api } from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
 import type { Product } from '@/types';
@@ -163,10 +164,13 @@ export default function SupermarketDashboardPage() {
           </div>
         )}
 
-        <div className="mb-6">
-          <Button onClick={() => setShowForm(!showForm)}>
-            {showForm ? 'Cancel' : 'Add New Product'}
-          </Button>
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <Button onClick={() => setShowForm(!showForm)} className="w-full">
+              {showForm ? 'Cancel' : 'Add New Product'}
+            </Button>
+          </div>
+          <CsvUpload />
         </div>
 
         {showForm && (
