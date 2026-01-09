@@ -13,6 +13,14 @@
     "success": "Sucesso",
     "internalServerError": "Erro interno do servidor"
   },
+  "home": {
+    "title": "Compare preços de supermercados e economize nas suas compras",
+    "subtitle": "Crie listas de compras, compare preços em tempo real e encontre as melhores ofertas perto de você.",
+    "loginButton": "Entrar",
+    "registerConsumerButton": "Cadastrar como Consumidor",
+    "supermarketQuestion": "Você é um supermercado?",
+    "registerSupermarketLink": "Cadastre-se aqui"
+  },
   "auth": {
     "login": {
       "title": "Entrar na sua conta",
