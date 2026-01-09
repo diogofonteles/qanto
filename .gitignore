@@ -13,7 +13,7 @@ build
 dist
 
 # Environment variables
-.env
+apps/backend/.env
 .env*.local
 .env.production
 
