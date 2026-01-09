@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +13,8 @@ import { UserRole } from '@/types';
 
 export default function LoginPage() {
   const router = useRouter();
+  const t = useTranslations('auth.login');
+  const tCommon = useTranslations('common');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -45,9 +48,9 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">qanto</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">{tCommon('appName')}</CardTitle>
           <CardDescription className="text-center">
-            Login to your account
+            {t('title')}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -59,11 +62,11 @@ export default function LoginPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('email')}</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="user@example.com"
+                placeholder={t('emailPlaceholder')}
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
@@ -72,7 +75,7 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t('password')}</Label>
               <Input
                 id="password"
                 type="password"
@@ -86,17 +89,17 @@ export default function LoginPage() {
 
           <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Logging in...' : 'Login'}
+              {loading ? t('loggingIn') : t('loginButton')}
             </Button>
 
             <div className="text-sm text-center text-muted-foreground">
-              Don&apos;t have an account?{' '}
+              {t('noAccount')}{' '}
               <Link href="/register" className="text-primary hover:underline">
-                Register as Consumer
+                {t('registerConsumer')}
               </Link>
-              {' or '}
+              {' '}{t('or')}{' '}
               <Link href="/register/supermarket" className="text-primary hover:underline">
-                Register as Supermarket
+                {t('registerSupermarket')}
               </Link>
             </div>
           </CardFooter>

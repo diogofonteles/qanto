@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +13,8 @@ import type { Product, ShoppingList, ComparisonResult } from '@/types';
 
 export default function DashboardPage() {
   const router = useRouter();
+  const t = useTranslations('dashboard');
+  const tCommon = useTranslations('common');
   const [user, setUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'lists' | 'products' | 'compare'>('lists');
 
@@ -165,7 +168,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-600">{user?.name}</span>
             <Button variant="outline" onClick={handleLogout}>
-              Logout
+              {tCommon('logout')}
             </Button>
           </div>
         </div>
@@ -183,21 +186,21 @@ export default function DashboardPage() {
             variant={activeTab === 'lists' ? 'default' : 'outline'}
             onClick={() => setActiveTab('lists')}
           >
-            My Lists
+            {t('myLists')}
           </Button>
           <Button
             variant={activeTab === 'products' ? 'default' : 'outline'}
             onClick={() => setActiveTab('products')}
             disabled={!selectedList}
           >
-            Add Products
+            {t('addProducts')}
           </Button>
           <Button
             variant={activeTab === 'compare' ? 'default' : 'outline'}
             onClick={() => setActiveTab('compare')}
             disabled={!selectedList}
           >
-            Compare Prices
+            {t('comparePrices')}
           </Button>
         </div>
 
@@ -205,16 +208,16 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Create New List</CardTitle>
-                <CardDescription>Start a new shopping list</CardDescription>
+                <CardTitle>{t('createNewList')}</CardTitle>
+                <CardDescription>{t('createNewListDescription')}</CardDescription>
               </CardHeader>
               <form onSubmit={handleCreateList}>
                 <CardContent>
-                  <Label htmlFor="listName">List Name</Label>
+                  <Label htmlFor="listName">{t('listName')}</Label>
                   <Input
                     id="listName"
                     type="text"
-                    placeholder="Weekly Shopping"
+                    placeholder={t('listNamePlaceholder')}
                     value={newListName}
                     onChange={(e) => setNewListName(e.target.value)}
                     disabled={loading}
@@ -222,7 +225,7 @@ export default function DashboardPage() {
                 </CardContent>
                 <CardFooter>
                   <Button type="submit" disabled={loading}>
-                    Create List
+                    {loading ? t('creatingList') : t('createList')}
                   </Button>
                 </CardFooter>
               </form>
@@ -230,12 +233,12 @@ export default function DashboardPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>My Shopping Lists</CardTitle>
-                <CardDescription>Select a list to manage</CardDescription>
+                <CardTitle>{t('myShoppingLists')}</CardTitle>
+                <CardDescription>{t('selectListToManage')}</CardDescription>
               </CardHeader>
               <CardContent>
                 {lists.length === 0 ? (
-                  <p className="text-sm text-gray-500">No lists yet. Create your first list!</p>
+                  <p className="text-sm text-gray-500">{t('noListsYet')}</p>
                 ) : (
                   <div className="space-y-2">
                     {lists.map((list) => (

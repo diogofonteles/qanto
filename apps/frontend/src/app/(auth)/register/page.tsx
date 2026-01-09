@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +13,8 @@ import { formatCEP } from '@/lib/utils';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const t = useTranslations('auth.register');
+  const tCommon = useTranslations('common');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -77,9 +80,9 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-2xl">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">qanto</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">{tCommon('appName')}</CardTitle>
           <CardDescription className="text-center">
-            Create your consumer account
+            {t('title')}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -92,11 +95,11 @@ export default function RegisterPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name">{t('fullName')}</Label>
                 <Input
                   id="name"
                   type="text"
-                  placeholder="John Doe"
+                  placeholder={t('fullNamePlaceholder')}
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
@@ -105,11 +108,11 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t('email')}</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="user@example.com"
+                  placeholder={t('emailPlaceholder')}
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
@@ -118,11 +121,11 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone">{t('phone')}</Label>
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="(11) 98765-4321"
+                  placeholder={t('phonePlaceholder')}
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   required
@@ -131,29 +134,30 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t('password')}</Label>
                 <Input
                   id="password"
                   type="password"
+                  placeholder={t('passwordPlaceholder')}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
                   disabled={loading}
-                  minLength={6}
+                  minLength={8}
                 />
               </div>
             </div>
 
             <div className="border-t pt-4 mt-4">
-              <h3 className="text-lg font-semibold mb-4">Address</h3>
+              <h3 className="text-lg font-semibold mb-4">{t('address')}</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="zipCode">ZIP Code</Label>
+                  <Label htmlFor="zipCode">{t('zipCode')}</Label>
                   <Input
                     id="zipCode"
                     type="text"
-                    placeholder="12345-678"
+                    placeholder={t('zipCodePlaceholder')}
                     value={formatCEP(formData.addressZipCode)}
                     onChange={(e) => setFormData({ ...formData, addressZipCode: e.target.value })}
                     onBlur={handleCepBlur}
@@ -164,11 +168,11 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="street">Street</Label>
+                  <Label htmlFor="street">{t('street')}</Label>
                   <Input
                     id="street"
                     type="text"
-                    placeholder="Street name"
+                    placeholder={t('streetPlaceholder')}
                     value={formData.addressStreet}
                     onChange={(e) => setFormData({ ...formData, addressStreet: e.target.value })}
                     required
@@ -177,11 +181,11 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="number">Number</Label>
+                  <Label htmlFor="number">{t('number')}</Label>
                   <Input
                     id="number"
                     type="text"
-                    placeholder="123"
+                    placeholder={t('numberPlaceholder')}
                     value={formData.addressNumber}
                     onChange={(e) => setFormData({ ...formData, addressNumber: e.target.value })}
                     required
@@ -190,11 +194,11 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="complement">Complement (optional)</Label>
+                  <Label htmlFor="complement">{t('complement')}</Label>
                   <Input
                     id="complement"
                     type="text"
-                    placeholder="Apt 101"
+                    placeholder={t('complementPlaceholder')}
                     value={formData.addressComplement}
                     onChange={(e) => setFormData({ ...formData, addressComplement: e.target.value })}
                     disabled={loading}
@@ -202,11 +206,11 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="neighborhood">Neighborhood</Label>
+                  <Label htmlFor="neighborhood">{t('neighborhood')}</Label>
                   <Input
                     id="neighborhood"
                     type="text"
-                    placeholder="Neighborhood"
+                    placeholder={t('neighborhoodPlaceholder')}
                     value={formData.addressNeighborhood}
                     onChange={(e) => setFormData({ ...formData, addressNeighborhood: e.target.value })}
                     required
@@ -215,11 +219,11 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
+                  <Label htmlFor="city">{t('city')}</Label>
                   <Input
                     id="city"
                     type="text"
-                    placeholder="City"
+                    placeholder={t('cityPlaceholder')}
                     value={formData.addressCity}
                     onChange={(e) => setFormData({ ...formData, addressCity: e.target.value })}
                     required
@@ -228,11 +232,11 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="state">State</Label>
+                  <Label htmlFor="state">{t('state')}</Label>
                   <Input
                     id="state"
                     type="text"
-                    placeholder="SP"
+                    placeholder={t('statePlaceholder')}
                     value={formData.addressState}
                     onChange={(e) => setFormData({ ...formData, addressState: e.target.value })}
                     required
@@ -246,13 +250,13 @@ export default function RegisterPage() {
 
           <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={loading || loadingCep}>
-              {loading ? 'Creating account...' : 'Create Account'}
+              {loading ? t('creatingAccount') : t('createAccountButton')}
             </Button>
 
             <div className="text-sm text-center text-muted-foreground">
-              Already have an account?{' '}
+              {t('alreadyHaveAccount')}{' '}
               <Link href="/login" className="text-primary hover:underline">
-                Login
+                {t('loginLink')}
               </Link>
             </div>
           </CardFooter>
