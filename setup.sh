@@ -30,7 +30,7 @@ echo ""
 # Passo 3: Prisma
 echo -e "${BLUE}[3/5]${NC} Configurando banco de dados..."
 cd apps/backend
-npx prisma generate --silent
+npx prisma generate > /dev/null 2>&1
 npx prisma migrate dev --name init --skip-seed 2>/dev/null || echo "Migrations já aplicadas"
 echo -e "${GREEN}✓ Database configurado${NC}"
 echo ""
