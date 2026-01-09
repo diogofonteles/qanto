@@ -1,0 +1,292 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { api } from '@/lib/api';
+import { formatCNPJ, formatCEP } from '@/lib/utils';
+
+export default function RegisterSupermarketPage() {
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    companyName: '',
+    tradingName: '',
+    email: '',
+    password: '',
+    phone: '',
+    cnpj: '',
+    addressZipCode: '',
+    addressStreet: '',
+    addressNumber: '',
+    addressComplement: '',
+    addressNeighborhood: '',
+    addressCity: '',
+    addressState: '',
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [loadingCep, setLoadingCep] = useState(false);
+
+  const handleCepBlur = async () => {
+    const cep = formData.addressZipCode.replace(/\D/g, '');
+    if (cep.length !== 8) return;
+
+    setLoadingCep(true);
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const data = await response.json();
+
+      if (data.erro) {
+        setError('CEP not found');
+        return;
+      }
+
+      setFormData({
+        ...formData,
+        addressStreet: data.logradouro || '',
+        addressNeighborhood: data.bairro || '',
+        addressCity: data.localidade || '',
+        addressState: data.uf || '',
+      });
+      setError('');
+    } catch (err) {
+      setError('Failed to fetch address');
+    } finally {
+      setLoadingCep(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      await api.registerSupermarket(formData);
+      router.push('/login');
+    } catch (err: any) {
+      setError(err.message || 'Failed to register');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <Card className="w-full max-w-2xl">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-center">qanto</CardTitle>
+          <CardDescription className="text-center">
+            Register your supermarket
+          </CardDescription>
+        </CardHeader>
+        <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-4">
+            {error && (
+              <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
+                {error}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="companyName">Company Name</Label>
+                <Input
+                  id="companyName"
+                  type="text"
+                  placeholder="Legal company name"
+                  value={formData.companyName}
+                  onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="tradingName">Trading Name</Label>
+                <Input
+                  id="tradingName"
+                  type="text"
+                  placeholder="Store name"
+                  value={formData.tradingName}
+                  onChange={(e) => setFormData({ ...formData, tradingName: e.target.value })}
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="cnpj">CNPJ</Label>
+                <Input
+                  id="cnpj"
+                  type="text"
+                  placeholder="12.345.678/0001-90"
+                  value={formatCNPJ(formData.cnpj)}
+                  onChange={(e) => setFormData({ ...formData, cnpj: e.target.value })}
+                  required
+                  disabled={loading}
+                  maxLength={18}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="(11) 3456-7890"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="contact@supermarket.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  required
+                  disabled={loading}
+                  minLength={6}
+                />
+              </div>
+            </div>
+
+            <div className="border-t pt-4 mt-4">
+              <h3 className="text-lg font-semibold mb-4">Address</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="zipCode">ZIP Code</Label>
+                  <Input
+                    id="zipCode"
+                    type="text"
+                    placeholder="12345-678"
+                    value={formatCEP(formData.addressZipCode)}
+                    onChange={(e) => setFormData({ ...formData, addressZipCode: e.target.value })}
+                    onBlur={handleCepBlur}
+                    required
+                    disabled={loading || loadingCep}
+                    maxLength={9}
+                  />
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="street">Street</Label>
+                  <Input
+                    id="street"
+                    type="text"
+                    placeholder="Street name"
+                    value={formData.addressStreet}
+                    onChange={(e) => setFormData({ ...formData, addressStreet: e.target.value })}
+                    required
+                    disabled={loading || loadingCep}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="number">Number</Label>
+                  <Input
+                    id="number"
+                    type="text"
+                    placeholder="123"
+                    value={formData.addressNumber}
+                    onChange={(e) => setFormData({ ...formData, addressNumber: e.target.value })}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="complement">Complement (optional)</Label>
+                  <Input
+                    id="complement"
+                    type="text"
+                    placeholder="Building B"
+                    value={formData.addressComplement}
+                    onChange={(e) => setFormData({ ...formData, addressComplement: e.target.value })}
+                    disabled={loading}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="neighborhood">Neighborhood</Label>
+                  <Input
+                    id="neighborhood"
+                    type="text"
+                    placeholder="Neighborhood"
+                    value={formData.addressNeighborhood}
+                    onChange={(e) => setFormData({ ...formData, addressNeighborhood: e.target.value })}
+                    required
+                    disabled={loading || loadingCep}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="city">City</Label>
+                  <Input
+                    id="city"
+                    type="text"
+                    placeholder="City"
+                    value={formData.addressCity}
+                    onChange={(e) => setFormData({ ...formData, addressCity: e.target.value })}
+                    required
+                    disabled={loading || loadingCep}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="state">State</Label>
+                  <Input
+                    id="state"
+                    type="text"
+                    placeholder="SP"
+                    value={formData.addressState}
+                    onChange={(e) => setFormData({ ...formData, addressState: e.target.value })}
+                    required
+                    disabled={loading || loadingCep}
+                    maxLength={2}
+                  />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+
+          <CardFooter className="flex flex-col space-y-4">
+            <Button type="submit" className="w-full" disabled={loading || loadingCep}>
+              {loading ? 'Creating account...' : 'Create Account'}
+            </Button>
+
+            <div className="text-sm text-center text-muted-foreground">
+              Already have an account?{' '}
+              <Link href="/login" className="text-primary hover:underline">
+                Login
+              </Link>
+            </div>
+          </CardFooter>
+        </form>
+      </Card>
+    </div>
+  );
+}
