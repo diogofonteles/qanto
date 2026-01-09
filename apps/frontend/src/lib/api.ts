@@ -155,6 +155,38 @@ class ApiClient {
     return this.request('/products/categories');
   }
 
+  async createProduct(data: any): Promise<Product> {
+    return this.request(
+      '/products',
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      },
+      true
+    );
+  }
+
+  async updateProduct(id: string, data: any): Promise<Product> {
+    return this.request(
+      `/products/${id}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      },
+      true
+    );
+  }
+
+  async deleteProduct(id: string): Promise<void> {
+    return this.request(
+      `/products/${id}`,
+      {
+        method: 'DELETE',
+      },
+      true
+    );
+  }
+
   logout() {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('accessToken');
